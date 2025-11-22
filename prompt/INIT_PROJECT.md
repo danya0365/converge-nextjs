@@ -15,13 +15,3 @@
 เมื่อสร้าง TODO เสร็จแล้ว ให้สร้างหน้า MainLayout พร้อม Header Footer และใส่ Theme Toggle
 
 จากนั้นสร้างหน้า Landing พร้อม master data ตาม pattern /Users/marosdeeuma/converge-nextjs/prompt/CREATE_PAGE_PATTERN.md
-
-- อัพเดต package.json
-- อัพเดต landing page
-- อัพเดต layout
-- create tailwind cn utility
-- copy env
-- init supabase
-- copy supabase migrations and seeds
-- copy public ที่มีอยู่ใน timeluxe-nextjs
-- gen Logo แล้วสร้าง favicon
