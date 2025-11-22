@@ -1,0 +1,695 @@
+{
+  "project_name": "Converge",
+  "description": "AI-powered omnichannel chat platform for customer service and sales",
+  "tech_stack": {
+    "frontend": "Next.js 14+ (App Router)",
+    "styling": "Tailwind CSS",
+    "state_management": "Zustand",
+    "backend": "Supabase (Database, Auth, Realtime, Storage)",
+    "additional_services": [
+      "AI/ML API (OpenAI, Anthropic)",
+      "Channel APIs (Meta, LINE, WhatsApp Business, TikTok, Shopee, Lazada)"
+    ]
+  },
+  "core_features": {
+    "unified_inbox": {
+      "description": "รวมแชทจากทุกช่องทางในที่เดียว",
+      "sub_features": {
+        "multi_channel_integration": {
+          "channels": [
+            "Facebook Messenger",
+            "Instagram Direct",
+            "LINE OA",
+            "WhatsApp Business",
+            "TikTok Shop",
+            "Shopee Chat",
+            "Lazada Chat",
+            "Website Live Chat Widget"
+          ],
+          "functions": [
+            "Connect/disconnect channels",
+            "Channel authentication flow",
+            "Real-time message sync",
+            "Channel-specific message format handling"
+          ]
+        },
+        "conversation_management": {
+          "features": [
+            "Unified message list view",
+            "Conversation threading",
+            "Message search and filter",
+            "Conversation status (open/closed/pending)",
+            "Mark as read/unread",
+            "Archive conversations",
+            "Pin important conversations",
+            "Conversation assignment to agents"
+          ]
+        },
+        "message_handling": {
+          "features": [
+            "Send/receive text messages",
+            "Send/receive images",
+            "Send/receive files",
+            "Send/receive voice messages",
+            "Message templates",
+            "Quick replies",
+            "Emoji support",
+            "Message reactions",
+            "Typing indicators",
+            "Read receipts"
+          ]
+        },
+        "customer_information": {
+          "features": [
+            "Customer profile sidebar",
+            "Customer name and contact",
+            "Customer avatar",
+            "Conversation history",
+            "Order history integration",
+            "Custom notes on customers",
+            "Customer tags and labels",
+            "Customer segments",
+            "Last interaction time",
+            "Channel source indicator"
+          ]
+        },
+        "team_collaboration": {
+          "features": [
+            "Assign conversations to specific agents",
+            "Internal notes on conversations",
+            "Agent status (online/away/busy)",
+            "Transfer conversations between agents",
+            "Team member mentions (@mention)",
+            "Collaborative inbox view",
+            "Agent activity tracking"
+          ]
+        }
+      },
+      "ui_components": [
+        "Conversation list panel (left sidebar)",
+        "Message thread view (center)",
+        "Customer info panel (right sidebar)",
+        "Message composer with rich text",
+        "Channel filter dropdown",
+        "Status filter (all/open/closed/assigned)",
+        "Search bar with filters",
+        "Notification badge"
+      ],
+      "database_tables": [
+        "conversations",
+        "messages",
+        "customers",
+        "channel_integrations",
+        "conversation_assignments",
+        "conversation_notes",
+        "customer_tags"
+      ]
+    },
+    "automations": {
+      "description": "ระบบอัตโนมัติสำหรับจัดการงานซ้ำซ้อน",
+      "sub_features": {
+        "basic_automations": {
+          "features": [
+            "Auto-welcome messages",
+            "Auto-reply for off-hours",
+            "Away message",
+            "Keyword-based auto-responses",
+            "Quick reply templates",
+            "Auto-assignment rules"
+          ]
+        },
+        "flow_builder": {
+          "description": "No-code workflow builder",
+          "features": [
+            "Visual drag-and-drop interface",
+            "Trigger types (new message, keyword, button click, time-based)",
+            "Action nodes (send message, assign agent, add tag, update customer)",
+            "Condition nodes (if/else logic)",
+            "Delay nodes",
+            "API webhook nodes",
+            "Branch/merge logic",
+            "Loop handling",
+            "Save and activate flows",
+            "Flow analytics and performance tracking"
+          ],
+          "node_types": [
+            "Trigger Node",
+            "Message Node",
+            "Question Node (with buttons)",
+            "Condition Node",
+            "Action Node",
+            "Delay Node",
+            "API Node",
+            "AI Response Node",
+            "Human Handoff Node"
+          ]
+        },
+        "chat_routing": {
+          "features": [
+            "Route by keyword",
+            "Route by customer segment",
+            "Route by channel",
+            "Route by time/availability",
+            "Load balancing across agents",
+            "Priority queue management",
+            "Escalation rules"
+          ]
+        }
+      },
+      "ui_components": [
+        "Automation rules list",
+        "Flow builder canvas",
+        "Node property editor",
+        "Flow testing interface",
+        "Automation analytics dashboard"
+      ],
+      "database_tables": [
+        "automation_flows",
+        "flow_nodes",
+        "flow_connections",
+        "flow_executions",
+        "flow_logs",
+        "automation_rules"
+      ]
+    },
+    "ai_agent": {
+      "description": "AI ตอบคำถามอัตโนมัติ 24/7",
+      "sub_features": {
+        "ai_chatbot": {
+          "features": [
+            "Natural language understanding",
+            "Context-aware responses",
+            "Multi-turn conversations",
+            "Product recommendation",
+            "FAQ answering",
+            "Lead qualification",
+            "Appointment scheduling",
+            "Order status checking",
+            "Sentiment analysis"
+          ]
+        },
+        "ai_training": {
+          "features": [
+            "Upload training documents (PDF, text)",
+            "Add website URLs for knowledge base",
+            "Custom Q&A pairs",
+            "Product catalog integration",
+            "Training data management",
+            "AI model fine-tuning settings",
+            "Response quality monitoring"
+          ]
+        },
+        "human_handoff": {
+          "features": [
+            "Auto-detect when AI can't answer",
+            "Smooth transfer to human agent",
+            "Conversation context preservation",
+            "Handoff trigger rules",
+            "Fallback responses",
+            "Human takeover notifications"
+          ]
+        },
+        "ai_settings": {
+          "features": [
+            "Enable/disable AI per channel",
+            "AI response tone settings",
+            "Response length preferences",
+            "Confidence threshold settings",
+            "Business hours for AI",
+            "AI escalation rules"
+          ]
+        }
+      },
+      "ui_components": [
+        "AI training dashboard",
+        "Knowledge base editor",
+        "AI conversation analytics",
+        "AI settings panel",
+        "Testing/preview interface"
+      ],
+      "database_tables": [
+        "ai_training_data",
+        "ai_conversations",
+        "ai_responses",
+        "ai_settings",
+        "ai_handoffs",
+        "knowledge_base_entries"
+      ]
+    },
+    "analytics": {
+      "description": "รายงานและวิเคราะห์ข้อมูลแบบ real-time",
+      "sub_features": {
+        "conversation_analytics": {
+          "metrics": [
+            "Total conversations",
+            "New conversations",
+            "Closed conversations",
+            "Average response time",
+            "First response time",
+            "Resolution time",
+            "Messages per conversation",
+            "Conversation volume by channel",
+            "Peak hours analysis",
+            "Conversation trends over time"
+          ]
+        },
+        "agent_performance": {
+          "metrics": [
+            "Messages sent per agent",
+            "Average response time per agent",
+            "Conversations handled per agent",
+            "Agent online time",
+            "Customer satisfaction per agent",
+            "Agent workload distribution",
+            "Agent leaderboard"
+          ]
+        },
+        "customer_insights": {
+          "metrics": [
+            "New customers",
+            "Returning customers",
+            "Customer lifetime value",
+            "Customer segments analysis",
+            "Most active customers",
+            "Customer satisfaction scores",
+            "Customer churn indicators"
+          ]
+        },
+        "ai_performance": {
+          "metrics": [
+            "AI resolution rate",
+            "AI accuracy score",
+            "Human handoff rate",
+            "AI response time",
+            "Most common queries",
+            "Failed queries analysis",
+            "AI improvement suggestions"
+          ]
+        },
+        "reports": {
+          "features": [
+            "Custom date range selection",
+            "Export to CSV/PDF",
+            "Scheduled reports",
+            "Report templates",
+            "Visual charts and graphs",
+            "Comparison views (period over period)"
+          ]
+        }
+      },
+      "ui_components": [
+        "Dashboard overview with KPI cards",
+        "Time-series charts",
+        "Bar/pie charts",
+        "Data tables",
+        "Filter controls",
+        "Date range picker",
+        "Export buttons"
+      ],
+      "database_tables": [
+        "analytics_events",
+        "agent_stats",
+        "conversation_metrics",
+        "daily_aggregates",
+        "ai_metrics"
+      ]
+    },
+    "broadcast": {
+      "description": "ส่งข้อความแบบ targeted campaigns",
+      "sub_features": {
+        "campaign_creation": {
+          "features": [
+            "Create broadcast campaigns",
+            "Rich message composer (text, images, buttons)",
+            "Campaign scheduling",
+            "Test before sending",
+            "Campaign templates",
+            "Campaign duplication"
+          ]
+        },
+        "audience_segmentation": {
+          "features": [
+            "Segment by tags",
+            "Segment by behavior",
+            "Segment by purchase history",
+            "Segment by channel",
+            "Segment by last interaction",
+            "Custom segment rules",
+            "Saved segments",
+            "Audience size estimation"
+          ]
+        },
+        "campaign_management": {
+          "features": [
+            "Campaign list view",
+            "Campaign status (draft/scheduled/sent)",
+            "Cancel scheduled campaigns",
+            "Pause/resume campaigns",
+            "Campaign versioning"
+          ]
+        },
+        "campaign_analytics": {
+          "metrics": [
+            "Messages sent",
+            "Delivery rate",
+            "Open rate",
+            "Click-through rate",
+            "Response rate",
+            "Conversion rate",
+            "Unsubscribe rate",
+            "Revenue generated"
+          ]
+        }
+      },
+      "ui_components": [
+        "Campaign creation wizard",
+        "Message preview",
+        "Audience selector",
+        "Campaign calendar",
+        "Campaign list table",
+        "Campaign analytics dashboard"
+      ],
+      "database_tables": [
+        "broadcast_campaigns",
+        "campaign_messages",
+        "campaign_audiences",
+        "campaign_segments",
+        "campaign_analytics",
+        "campaign_deliveries"
+      ]
+    },
+    "live_chat_widget": {
+      "description": "Website chat widget",
+      "sub_features": {
+        "widget_customization": {
+          "features": [
+            "Custom colors/branding",
+            "Custom greeting message",
+            "Widget position (bottom-right/left)",
+            "Custom avatar",
+            "Pre-chat form",
+            "Business hours display",
+            "Language settings",
+            "Mobile responsive design"
+          ]
+        },
+        "widget_features": {
+          "features": [
+            "Real-time messaging",
+            "File sharing",
+            "Emoji support",
+            "Typing indicators",
+            "Agent avatar and name",
+            "Conversation history",
+            "Offline message form",
+            "GDPR compliance options"
+          ]
+        },
+        "installation": {
+          "features": [
+            "Generate embed code",
+            "Installation instructions",
+            "Test widget",
+            "Domain whitelist"
+          ]
+        }
+      },
+      "ui_components": [
+        "Widget configurator",
+        "Code snippet generator",
+        "Widget preview",
+        "Installation guide"
+      ],
+      "database_tables": ["widget_settings", "widget_conversations"]
+    },
+    "integrations": {
+      "description": "เชื่อมต่อกับระบบภายนอก",
+      "sub_features": {
+        "e_commerce_platforms": {
+          "platforms": [
+            "Shopify",
+            "WooCommerce",
+            "Shopee",
+            "Lazada",
+            "TikTok Shop"
+          ],
+          "features": [
+            "Order sync",
+            "Product catalog sync",
+            "Customer data sync",
+            "Order status updates in chat"
+          ]
+        },
+        "crm_integrations": {
+          "platforms": ["HubSpot", "Salesforce", "Zoho CRM"],
+          "features": [
+            "Contact sync",
+            "Lead creation",
+            "Activity logging",
+            "Deal tracking"
+          ]
+        },
+        "other_integrations": {
+          "tools": [
+            "Google Sheets (webhook)",
+            "Slack notifications",
+            "Zapier",
+            "Webhook custom integrations"
+          ]
+        }
+      },
+      "ui_components": [
+        "Integration marketplace",
+        "Connect/disconnect flows",
+        "Integration settings panels",
+        "Sync status indicators"
+      ],
+      "database_tables": [
+        "integrations",
+        "integration_configs",
+        "integration_logs",
+        "synced_orders",
+        "synced_products"
+      ]
+    }
+  },
+  "additional_features": {
+    "authentication": {
+      "features": [
+        "Email/password signup",
+        "Social login (Google, Facebook)",
+        "Magic link login",
+        "Two-factor authentication",
+        "Password reset",
+        "Email verification",
+        "Session management"
+      ],
+      "database_tables": [
+        "users (via Supabase Auth)",
+        "user_profiles",
+        "teams",
+        "team_members"
+      ]
+    },
+    "team_management": {
+      "features": [
+        "Invite team members",
+        "Role-based access control (Admin, Agent, Viewer)",
+        "Permissions management",
+        "Team member list",
+        "Remove team members",
+        "Activity logs"
+      ],
+      "database_tables": ["team_members", "roles", "permissions"]
+    },
+    "settings": {
+      "sections": [
+        "Account settings",
+        "Profile settings",
+        "Notification preferences",
+        "Channel settings",
+        "Billing & subscription",
+        "Team settings",
+        "Security settings",
+        "API keys management"
+      ]
+    },
+    "notifications": {
+      "types": [
+        "In-app notifications",
+        "Email notifications",
+        "Push notifications (mobile)",
+        "Desktop notifications",
+        "Slack notifications"
+      ],
+      "triggers": [
+        "New conversation",
+        "New message",
+        "Conversation assigned",
+        "Mention in notes",
+        "System alerts"
+      ],
+      "database_tables": ["notifications", "notification_preferences"]
+    },
+    "mobile_app": {
+      "platforms": ["iOS", "Android"],
+      "features": [
+        "Full inbox access",
+        "Push notifications",
+        "Quick replies",
+        "Offline mode",
+        "Voice messages",
+        "Camera integration"
+      ]
+    },
+    "pricing_plans": {
+      "plans": [
+        {
+          "name": "Basic",
+          "price_usd": 30,
+          "features": [
+            "Unified inbox",
+            "Up to 3 integrations",
+            "Basic automations",
+            "1 user"
+          ]
+        },
+        {
+          "name": "Pro",
+          "price_usd": 35,
+          "features": [
+            "Everything in Basic",
+            "Up to 5 integrations",
+            "Analytics dashboard",
+            "3 users"
+          ]
+        },
+        {
+          "name": "Advanced",
+          "price_usd": 139,
+          "features": [
+            "Everything in Pro",
+            "Unlimited integrations",
+            "Advanced flow builder",
+            "AI agent (1,000 free messages/month)",
+            "Broadcast",
+            "10 users"
+          ]
+        },
+        {
+          "name": "Enterprise",
+          "price": "Custom",
+          "features": [
+            "Everything in Advanced",
+            "Unlimited conversations",
+            "Unlimited users",
+            "Dedicated account manager",
+            "Custom integrations"
+          ]
+        }
+      ]
+    },
+    "help_resources": {
+      "features": [
+        "Help center/documentation",
+        "Video tutorials",
+        "Case studies",
+        "Blog",
+        "API documentation",
+        "Live chat support",
+        "Demo booking"
+      ]
+    }
+  },
+  "ui_layout": {
+    "main_navigation": {
+      "items": [
+        "Dashboard",
+        "Inbox",
+        "Automations",
+        "AI Agent",
+        "Analytics",
+        "Broadcast",
+        "Customers",
+        "Settings"
+      ]
+    },
+    "header": {
+      "components": ["Logo", "Search", "Notifications", "User menu"]
+    },
+    "responsive_design": {
+      "breakpoints": [
+        "Mobile (< 768px)",
+        "Tablet (768px - 1024px)",
+        "Desktop (> 1024px)"
+      ]
+    }
+  },
+  "database_schema": {
+    "core_tables": [
+      "users",
+      "teams",
+      "team_members",
+      "channels",
+      "conversations",
+      "messages",
+      "customers",
+      "agents",
+      "automations",
+      "ai_configs",
+      "broadcasts",
+      "analytics_events",
+      "integrations",
+      "notifications",
+      "tags",
+      "notes"
+    ],
+    "realtime_features": [
+      "New messages",
+      "Typing indicators",
+      "Online status",
+      "Conversation updates"
+    ]
+  },
+  "implementation_priority": {
+    "phase_1_mvp": [
+      "Authentication",
+      "Basic inbox (single channel)",
+      "Send/receive messages",
+      "Customer profiles",
+      "Team management"
+    ],
+    "phase_2": [
+      "Multiple channel integration",
+      "Conversation assignment",
+      "Basic automations",
+      "Tags and labels",
+      "Basic analytics"
+    ],
+    "phase_3": [
+      "Flow builder",
+      "AI chatbot integration",
+      "Broadcast campaigns",
+      "Advanced analytics",
+      "Website widget"
+    ],
+    "phase_4": [
+      "E-commerce integrations",
+      "Mobile apps",
+      "Advanced AI features",
+      "Enterprise features",
+      "API for developers"
+    ]
+  },
+  "security_considerations": [
+    "End-to-end encryption for messages",
+    "GDPR compliance",
+    "Data privacy controls",
+    "Role-based access control",
+    "Audit logs",
+    "Secure API authentication",
+    "Rate limiting",
+    "XSS protection",
+    "CSRF protection"
+  ]
+}
