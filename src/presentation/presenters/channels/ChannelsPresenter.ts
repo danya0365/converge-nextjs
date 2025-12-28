@@ -21,7 +21,7 @@ export interface ChannelOverallStats {
 export interface ChannelsRepository {
   getChannels(teamId: string): Promise<Channel[]>;
   getChannelById(id: string): Promise<Channel | null>;
-  getChannelStats(channelId: string): Promise<ChannelStats>;
+  getChannelStats(channelId: string): Promise<ChannelStats | null>;
   getOverallStats(teamId: string): Promise<ChannelOverallStats>;
   connectChannel(data: ConnectChannelData): Promise<Channel>;
   updateChannel(id: string, data: Partial<Channel>): Promise<Channel>;
@@ -41,32 +41,34 @@ export interface ConnectChannelData {
  */
 class MockChannelsRepository implements ChannelsRepository {
   async getChannels(teamId: string): Promise<Channel[]> {
-    return mockChannelRepository.getChannelsByTeam(teamId);
+    return mockChannelRepository.getAllChannels(teamId);
   }
 
   async getChannelById(id: string): Promise<Channel | null> {
     return mockChannelRepository.getChannelById(id);
   }
 
-  async getChannelStats(channelId: string): Promise<ChannelStats> {
+  async getChannelStats(channelId: string): Promise<ChannelStats | null> {
     return mockChannelRepository.getChannelStats(channelId);
   }
 
   async getOverallStats(teamId: string): Promise<ChannelOverallStats> {
-    const channels = await mockChannelRepository.getChannelsByTeam(teamId);
+    const channels = await mockChannelRepository.getAllChannels(teamId);
 
     let totalMessages = 0;
     let totalConversations = 0;
 
     for (const channel of channels) {
       const stats = await mockChannelRepository.getChannelStats(channel.id);
-      totalMessages += stats.totalMessages;
-      totalConversations += stats.totalConversations;
+      if (stats) {
+        totalMessages += stats.messagesReceived + stats.messagesSent;
+        totalConversations += stats.conversationsStarted;
+      }
     }
 
     return {
       totalChannels: channels.length,
-      activeChannels: channels.filter((c) => c.status === "active").length,
+      activeChannels: channels.filter((c) => c.status === "connected").length,
       totalMessages,
       totalConversations,
     };
@@ -78,18 +80,21 @@ class MockChannelsRepository implements ChannelsRepository {
       id: `channel-${Date.now()}`,
       teamId: data.teamId,
       name: data.name,
-      type: data.type as any,
-      status: "active",
-      isConnected: true,
+      type: data.type as Channel["type"],
+      status: "connected",
       settings: {
-        autoReply: false,
-        notificationsEnabled: true,
+        autoReply: {
+          enabled: false,
+        },
+        notificationSettings: {
+          newMessage: true,
+          mention: true,
+        },
         workingHours: {
           enabled: false,
-          timezone: "Asia/Bangkok",
-          schedule: {},
         },
       },
+      connectedAt: new Date(),
       createdAt: new Date(),
       updatedAt: new Date(),
       lastSyncAt: new Date(),
@@ -145,7 +150,7 @@ export class ChannelsPresenter {
     return this.repository.getChannelById(id);
   }
 
-  async getChannelStats(channelId: string): Promise<ChannelStats> {
+  async getChannelStats(channelId: string): Promise<ChannelStats | null> {
     return this.repository.getChannelStats(channelId);
   }
 
