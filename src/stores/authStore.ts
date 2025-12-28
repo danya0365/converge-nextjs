@@ -1,47 +1,38 @@
 import localforage from "localforage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { mockUsers } from "../data/mock/users.data";
-
-// Types
-export type UserRole = "customer" | "vendor" | "admin";
-
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: UserRole;
-  avatar?: string;
-  phone?: string;
-  createdAt: string;
-  emailVerified: boolean;
-}
+import { UserProfile } from "../domain/entities/User";
+import {
+  AuthPresenterFactory,
+  SignUpData,
+} from "../presentation/presenters/auth/AuthPresenter";
 
 export interface AuthState {
-  user: User | null;
+  user: UserProfile | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  error: string | null;
 }
 
 export interface AuthActions {
-  login: (email: string, password: string) => Promise<void>;
-  register: (data: RegisterData) => Promise<void>;
-  logout: () => void;
-  updateProfile: (data: Partial<User>) => Promise<void>;
+  login: (
+    email: string,
+    password: string,
+    rememberMe?: boolean
+  ) => Promise<void>;
+  signUp: (data: SignUpData) => Promise<void>;
+  logout: () => Promise<void>;
+  updateProfile: (data: Partial<UserProfile>) => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (token: string, password: string) => Promise<void>;
   verifyEmail: (token: string) => Promise<void>;
-}
-
-export interface RegisterData {
-  email: string;
-  password: string;
-  name: string;
-  phone?: string;
-  role?: UserRole;
+  checkAuth: () => Promise<void>;
+  clearError: () => void;
 }
 
 type AuthStore = AuthState & AuthActions;
+
+const authPresenter = AuthPresenterFactory.create();
 
 export const useAuthStore = create<AuthStore>()(
   persist(
@@ -50,92 +41,77 @@ export const useAuthStore = create<AuthStore>()(
       user: null,
       isAuthenticated: false,
       isLoading: false,
+      error: null,
 
       // Actions
-      login: async (email: string, password: string) => {
-        set({ isLoading: true });
+      login: async (email: string, password: string, rememberMe = false) => {
+        set({ isLoading: true, error: null });
 
         try {
-          // Simulate API call
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-
-          // Find user in mock data
-          const foundUser = mockUsers.find(
-            (u) => u.email === email && u.password === password
-          );
-
-          if (!foundUser) {
-            throw new Error("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
-          }
-
-          // Remove password from user object
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { password: _pwd, ...user } = foundUser;
+          const { user } = await authPresenter.login({
+            email,
+            password,
+            rememberMe,
+          });
 
           set({
             user,
             isAuthenticated: true,
             isLoading: false,
+            error: null,
           });
         } catch (error) {
-          set({ isLoading: false });
+          const message =
+            error instanceof Error ? error.message : "เกิดข้อผิดพลาด";
+          set({ isLoading: false, error: message });
           throw error;
         }
       },
 
-      register: async (data: RegisterData) => {
-        set({ isLoading: true });
+      signUp: async (data: SignUpData) => {
+        set({ isLoading: true, error: null });
 
         try {
-          // Simulate API call
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-
-          // Check if email already exists
-          const existingUser = mockUsers.find((u) => u.email === data.email);
-          if (existingUser) {
-            throw new Error("อีเมลนี้ถูกใช้งานแล้ว");
-          }
-
-          // Create new user
-          const newUser: User = {
-            id: `${mockUsers.length + 1}`,
-            email: data.email,
-            name: data.name,
-            role: data.role || "customer",
-            phone: data.phone,
-            avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.email}`,
-            createdAt: new Date().toISOString(),
-            emailVerified: false,
-          };
-
-          // Add to mock users (in real app, this would be saved to DB)
-          mockUsers.push({ ...newUser, password: data.password });
+          const { user } = await authPresenter.signUp(data);
 
           set({
-            user: newUser,
+            user,
             isAuthenticated: true,
             isLoading: false,
+            error: null,
           });
         } catch (error) {
-          set({ isLoading: false });
+          const message =
+            error instanceof Error ? error.message : "เกิดข้อผิดพลาด";
+          set({ isLoading: false, error: message });
           throw error;
         }
       },
 
-      logout: () => {
-        set({
-          user: null,
-          isAuthenticated: false,
-        });
-      },
-
-      updateProfile: async (data: Partial<User>) => {
-        set({ isLoading: true });
+      logout: async () => {
+        set({ isLoading: true, error: null });
 
         try {
-          // Simulate API call
-          await new Promise((resolve) => setTimeout(resolve, 1000));
+          await authPresenter.logout();
 
+          set({
+            user: null,
+            isAuthenticated: false,
+            isLoading: false,
+            error: null,
+          });
+        } catch (error) {
+          const message =
+            error instanceof Error ? error.message : "เกิดข้อผิดพลาด";
+          set({ isLoading: false, error: message });
+          throw error;
+        }
+      },
+
+      updateProfile: async (data: Partial<UserProfile>) => {
+        set({ isLoading: true, error: null });
+
+        try {
           const currentUser = get().user;
           if (!currentUser) {
             throw new Error("ไม่พบข้อมูลผู้ใช้");
@@ -149,43 +125,35 @@ export const useAuthStore = create<AuthStore>()(
           set({
             user: updatedUser,
             isLoading: false,
+            error: null,
           });
         } catch (error) {
-          set({ isLoading: false });
+          const message =
+            error instanceof Error ? error.message : "เกิดข้อผิดพลาด";
+          set({ isLoading: false, error: message });
           throw error;
         }
       },
 
       forgotPassword: async (email: string) => {
-        set({ isLoading: true });
+        set({ isLoading: true, error: null });
 
         try {
-          // Simulate API call
-          await new Promise((resolve) => setTimeout(resolve, 1000));
+          await authPresenter.resetPassword({ email });
 
-          // Check if email exists
-          const user = mockUsers.find((u) => u.email === email);
-          if (!user) {
-            throw new Error("ไม่พบอีเมลนี้ในระบบ");
-          }
-
-          // In real app, send reset password email
-          console.log("Reset password email sent to:", email);
-
-          set({ isLoading: false });
+          set({ isLoading: false, error: null });
         } catch (error) {
-          set({ isLoading: false });
+          const message =
+            error instanceof Error ? error.message : "เกิดข้อผิดพลาด";
+          set({ isLoading: false, error: message });
           throw error;
         }
       },
 
       resetPassword: async (token: string, newPassword: string) => {
-        set({ isLoading: true });
+        set({ isLoading: true, error: null });
 
         try {
-          // Simulate API call
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-
           // In real app, verify token and update password
           console.log(
             "Password reset with token:",
@@ -194,36 +162,65 @@ export const useAuthStore = create<AuthStore>()(
             newPassword.length
           );
 
-          set({ isLoading: false });
+          set({ isLoading: false, error: null });
         } catch (error) {
-          set({ isLoading: false });
+          const message =
+            error instanceof Error ? error.message : "เกิดข้อผิดพลาด";
+          set({ isLoading: false, error: message });
           throw error;
         }
       },
 
       verifyEmail: async (token: string) => {
-        set({ isLoading: true });
+        set({ isLoading: true, error: null });
 
         try {
-          // Simulate API call
-          await new Promise((resolve) => setTimeout(resolve, 1000));
+          await authPresenter.verifyEmail(token);
 
           const currentUser = get().user;
-          if (!currentUser) {
-            throw new Error("ไม่พบข้อมูลผู้ใช้");
+          if (currentUser) {
+            set({
+              user: {
+                ...currentUser,
+                status: "active",
+              },
+              isLoading: false,
+              error: null,
+            });
           }
-
-          set({
-            user: {
-              ...currentUser,
-              emailVerified: true,
-            },
-            isLoading: false,
-          });
         } catch (error) {
-          set({ isLoading: false });
+          const message =
+            error instanceof Error ? error.message : "เกิดข้อผิดพลาด";
+          set({ isLoading: false, error: message });
           throw error;
         }
+      },
+
+      checkAuth: async () => {
+        try {
+          const user = await authPresenter.getCurrentUser();
+
+          if (user) {
+            set({
+              user,
+              isAuthenticated: true,
+            });
+          } else {
+            set({
+              user: null,
+              isAuthenticated: false,
+            });
+          }
+        } catch (error) {
+          set({
+            user: null,
+            isAuthenticated: false,
+          });
+        }
+      },
+
+      clearError: () => {
+        set({ error: null });
       },
     }),
     {
