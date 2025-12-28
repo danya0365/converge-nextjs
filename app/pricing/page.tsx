@@ -1,6 +1,6 @@
-import { LandingView } from "@/src/presentation/components/landing/LandingView";
+import { PricingView } from "@/src/presentation/components/pricing/PricingView";
 import { MainLayout } from "@/src/presentation/components/templates/MainLayout";
-import { LandingPresenterFactory } from "@/src/presentation/presenters/landing/LandingPresenter";
+import { PricingPresenterFactory } from "@/src/presentation/presenters/pricing/PricingPresenter";
 import type { Metadata } from "next";
 
 // Tell Next.js this is a dynamic page
@@ -11,7 +11,7 @@ export const fetchCache = "force-no-store";
  * Generate metadata for the page
  */
 export async function generateMetadata(): Promise<Metadata> {
-  const presenter = await LandingPresenterFactory.createServer();
+  const presenter = await PricingPresenterFactory.createServer();
 
   try {
     return presenter.generateMetadata();
@@ -20,19 +20,19 @@ export async function generateMetadata(): Promise<Metadata> {
 
     // Fallback metadata
     return {
-      title: "Converge - ระบบรวมแชทและ AI Chatbot สำหรับธุรกิจ",
+      title: "ราคาและแผนบริการ - Converge",
       description:
-        "รวมทุกช่องทางการแชทในที่เดียว Facebook, Instagram, LINE, WhatsApp, TikTok, Shopee, Lazada พร้อม AI ตอบอัตโนมัติ 24/7",
+        "เลือกแผนที่เหมาะกับธุรกิจของคุณ เริ่มต้นฟรี 14 วัน ไม่ต้องใส่บัตรเครดิต",
     };
   }
 }
 
 /**
- * Landing Page - Server Component for SEO optimization
+ * Pricing Page - Server Component for SEO optimization
  * Uses presenter pattern following Clean Architecture
  */
-export default async function Home() {
-  const presenter = await LandingPresenterFactory.createServer();
+export default async function PricingPage() {
+  const presenter = await PricingPresenterFactory.createServer();
 
   try {
     // Get view model from presenter
@@ -40,11 +40,11 @@ export default async function Home() {
 
     return (
       <MainLayout>
-        <LandingView initialViewModel={viewModel} />
+        <PricingView initialViewModel={viewModel} />
       </MainLayout>
     );
   } catch (error) {
-    console.error("Error fetching landing data:", error);
+    console.error("Error fetching pricing data:", error);
 
     // Fallback UI
     return (
@@ -54,7 +54,7 @@ export default async function Home() {
             <h1 className="text-2xl font-bold text-foreground mb-2">
               เกิดข้อผิดพลาด
             </h1>
-            <p className="text-muted mb-4">ไม่สามารถโหลดข้อมูลได้</p>
+            <p className="text-muted mb-4">ไม่สามารถโหลดข้อมูลราคาได้</p>
           </div>
         </div>
       </MainLayout>
