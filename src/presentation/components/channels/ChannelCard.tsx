@@ -51,18 +51,20 @@ export function ChannelCard({
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
-      active:
+      connected:
         "bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400",
-      inactive: "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400",
+      disconnected: "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400",
+      pending: "bg-yellow-100 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400",
       error: "bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400",
     };
-    return colors[status] || colors.inactive;
+    return colors[status] || colors.disconnected;
   };
 
   const getStatusText = (status: string) => {
     const texts: Record<string, string> = {
-      active: "เชื่อมต่อแล้ว",
-      inactive: "ไม่ได้เชื่อมต่อ",
+      connected: "เชื่อมต่อแล้ว",
+      disconnected: "ไม่ได้เชื่อมต่อ",
+      pending: "รอดำเนินการ",
       error: "เกิดข้อผิดพลาด",
     };
     return texts[status] || status;
@@ -138,17 +140,17 @@ export function ChannelCard({
       {/* Settings */}
       <div className="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex flex-wrap gap-2">
-          {channel.settings.autoReply && (
+          {channel.settings?.autoReply && (
             <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-xs rounded-full">
               ✓ ตอบกลับอัตโนมัติ
             </span>
           )}
-          {channel.settings.notificationsEnabled && (
+          {channel.settings?.notificationSettings?.newMessage && (
             <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 text-xs rounded-full">
               ✓ การแจ้งเตือน
             </span>
           )}
-          {channel.settings.workingHours?.enabled && (
+          {channel.settings?.workingHours?.enabled && (
             <span className="px-2 py-1 bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400 text-xs rounded-full">
               ✓ เวลาทำงาน
             </span>
@@ -183,7 +185,7 @@ export function ChannelCard({
       <div className="grid grid-cols-2 gap-3">
         <button
           onClick={handleTest}
-          disabled={testing || channel.status !== "active"}
+          disabled={testing || channel.status !== "connected"}
           className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-all text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {testing ? "กำลังทดสอบ..." : "🔍 ทดสอบ"}
@@ -196,7 +198,7 @@ export function ChannelCard({
             📊 สถิติ
           </button>
         )}
-        {onDisconnect && channel.status === "active" && (
+        {onDisconnect && channel.status === "connected" && (
           <button
             onClick={() => {
               if (confirm(`ต้องการยกเลิกการเชื่อมต่อ ${channel.name}?`)) {
