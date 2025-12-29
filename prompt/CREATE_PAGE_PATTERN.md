@@ -19,7 +19,7 @@ This template follows the established Clean Architecture pattern with:
 
 ```typescript
 import { [PageName]View } from "@/src/presentation/components/[page-name]/[PageName]View";
-import { [PageName]PresenterFactory } from "@/src/presentation/presenters/[page-name]/[PageName]Presenter";
+import { createServer[PageName]Presenter } from "@/src/presentation/presenters/[page-name]/[PageName]PresenterServerFactory";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -39,7 +39,7 @@ export async function generateMetadata({
   params,
 }: [PageName]PageProps): Promise<Metadata> {
   const resolvedParams = await params;
-  const presenter = await [PageName]PresenterFactory.createServer();
+  const presenter = await createServer[PageName]Presenter();
 
   try {
     return presenter.generateMetadata(resolvedParams.[paramName]);
@@ -60,7 +60,7 @@ export async function generateMetadata({
  */
 export default async function [PageName]Page({ params }: [PageName]PageProps) {
   const resolvedParams = await params;
-  const presenter = await [PageName]PresenterFactory.createServer();
+  const presenter = await createServer[PageName]Presenter();
 
   try {
     // Get view model from presenter
@@ -107,13 +107,11 @@ export default async function [PageName]Page({ params }: [PageName]PageProps) {
 ## 2. Pattern: `src/presentation/presenters/[page-name]/[PageName]Presenter.ts`
 
 ```typescript
-// Define your interfaces and types here
-export interface PresenterUser {
-  id: string;
-  email: string;
-  displayName?: string;
-}
+import { createServerSupabaseClient } from "@/src/infrastructure/config/supabase-server-client.ts";
+import { createClientSupabaseClient } from "@/src/infrastructure/config/supabase-client-client.ts";
+import type { User } from "@supabase/supabase-js";
 
+// Define your interfaces and types here
 export interface [PageItem] {
   id: string;
   name: string;
@@ -141,7 +139,7 @@ export interface Update[PageItem]Data {
 }
 
 export interface [PageName]ViewModel {
-  user: PresenterUser | null;
+  user: User | null;
   items: [PageItem][];
   stats: [PageStats];
   totalCount: number;
@@ -150,207 +148,182 @@ export interface [PageName]ViewModel {
   // Add your view model fields here
 }
 
-export interface [PageName]Repository {
-  getUser(): Promise<PresenterUser | null>;
-  getPaginated[PageItems](page: number, perPage: number): Promise<{ data: [PageItem][]; total: number }>;
-  getStats(): Promise<[PageStats]>;
-  create[PageItem](data: Create[PageItem]Data): Promise<[PageItem]>;
-  update[PageItem](id: string, data: Update[PageItem]Data): Promise<[PageItem]>;
-  delete[PageItem](id: string): Promise<boolean>;
-  get[PageItem]ById(id: string): Promise<[PageItem]>;
-}
-
-/**
- * ✅ Default mock implementation. Replace with real repository when ready.
- */
-class Mock[PageName]Repository implements [PageName]Repository {
-  private items: [PageItem][] = [];
-  private stats: [PageStats] = {
-    totalItems: 0,
-    activeItems: 0,
-    inactiveItems: 0,
-  };
-
-  async getUser(): Promise<PresenterUser | null> {
-    return {
-      id: "mock-user-id",
-      email: "mock-user@example.com",
-    };
-  }
-
-  async getPaginated[PageItems](page: number, perPage: number) {
-    const start = (page - 1) * perPage;
-    const data = this.items.slice(start, start + perPage);
-    return { data, total: this.items.length };
-  }
-
-  async getStats(): Promise<[PageStats]> {
-    return this.stats;
-  }
-
-  async create[PageItem](data: Create[PageItem]Data): Promise<[PageItem]> {
-    const newItem: [PageItem] = {
-      id: crypto.randomUUID(),
-      name: data.name,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    this.items = [newItem, ...this.items];
-    this.stats = {
-      ...this.stats,
-      totalItems: this.items.length,
-      activeItems: this.items.length,
-    };
-    return newItem;
-  }
-
-  async update[PageItem](id: string, data: Update[PageItem]Data): Promise<[PageItem]> {
-    const index = this.items.findIndex((item) => item.id === id);
-    if (index === -1) {
-      throw new Error("[PageItem] not found");
-    }
-    const updated: [PageItem] = {
-      ...this.items[index],
-      ...data,
-      updatedAt: new Date().toISOString(),
-    };
-    this.items[index] = updated;
-    return updated;
-  }
-
-  async delete[PageItem](id: string): Promise<boolean> {
-    const before = this.items.length;
-    this.items = this.items.filter((item) => item.id !== id);
-    this.stats = {
-      ...this.stats,
-      totalItems: this.items.length,
-      activeItems: this.items.length,
-    };
-    return this.items.length < before;
-  }
-
-  async get[PageItem]ById(id: string): Promise<[PageItem]> {
-    const item = this.items.find((current) => current.id === id);
-    if (!item) {
-      throw new Error("[PageItem] not found");
-    }
-    return item;
-  }
-}
-
 /**
  * Presenter for [PageName] management
  * Follows Clean Architecture with proper separation of concerns
  */
 export class [PageName]Presenter {
   constructor(
-    private readonly repository: [PageName]Repository
-  ) {}
+    private readonly supabase: SupabaseClient
+  ) {
+  }
 
+  /**
+   * Get view model for the page
+   */
   async getViewModel([paramName]: string, page: number, perPage: number): Promise<[PageName]ViewModel> {
-    const user = await this.getUser();
-    const [items, stats] = await Promise.all([
-      this.getPaginated[PageItems](page, perPage),
-      this.getStats(),
-    ]);
+    try {
+      // Get user for authentication
+      const user = await this.getUser();
 
-    return {
-      user,
-      items: items.data,
-      stats,
-      totalCount: items.total,
-      page,
-      perPage,
-    };
+      // Get data in parallel for better performance
+      const [items, stats] = await Promise.all([
+        this.getPaginatedItems(page, perPage),
+        this.getStats()
+      ]);
+
+      return {
+        user,
+        items: items.data,
+        stats,
+        totalCount: items.total,
+        page,
+        perPage
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 
+  /**
+   * Generate metadata for the page
+   */
   async generateMetadata([paramName]: string) {
-    return {
-      title: "จัดการ[PageThaiName] | Shop Queue",
-      description: "ระบบจัดการ[PageThaiDescription]",
-    };
+    try {
+      return {
+        title: "จัดการ[PageThaiName] | Shop Queue",
+        description: "ระบบจัดการ[PageThaiDescription]",
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 
+  /**
+   * Create a new item
+   */
   async create[PageItem](data: Create[PageItem]Data): Promise<[PageItem]> {
-    const user = await this.getUser();
-    if (!user) {
-      throw new Error("User not authenticated");
+    try {
+      const user = await this.getUser();
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
+      const item = await this.supabase.from("[page-name]").insert(data);
+      return item;
+    } catch (error) {
+      throw error;
     }
-    return this.repository.create[PageItem](data);
   }
 
+  /**
+   * Update an existing item
+   */
   async update[PageItem](id: string, data: Update[PageItem]Data): Promise<[PageItem]> {
-    const user = await this.getUser();
-    if (!user) {
-      throw new Error("User not authenticated");
+    try {
+      const user = await this.getUser();
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
+      const item = await this.supabase.from("[page-name]").update(data).eq("id", id);
+      return item;
+    } catch (error) {
+      throw error;
     }
-    return this.repository.update[PageItem](id, data);
   }
 
+  /**
+   * Delete an item
+   */
   async delete[PageItem](id: string): Promise<boolean> {
-    const user = await this.getUser();
-    if (!user) {
-      throw new Error("User not authenticated");
+    try {
+      const user = await this.getUser();
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
+      await this.supabase.from("[page-name]").delete().eq("id", id);
+      return true;
+    } catch (error) {
+      throw error;
     }
-    return this.repository.delete[PageItem](id);
   }
 
+  /**
+   * Get item by ID
+   */
   async get[PageItem]ById(id: string): Promise<[PageItem]> {
-    const user = await this.getUser();
-    if (!user) {
-      throw new Error("User not authenticated");
+    try {
+      const user = await this.getUser();
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
+      const item = await this.supabase.from("[page-name]").select("*").eq("id", id);
+      return item;
+    } catch (error) {
+      throw error;
     }
-    return this.repository.get[PageItem]ById(id);
   }
 
+  /**
+   * Get paginated items
+   */
   async getPaginated[PageItems](page: number, perPage: number) {
-    const user = await this.getUser();
-    if (!user) {
-      throw new Error("User not authenticated");
+    try {
+      const user = await this.getUser();
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
+      const result = await this.supabase.from("[page-name]").select("*").order("createdAt", { ascending: false }).limit(perPage).offset((page - 1) * perPage);
+      return result;
+    } catch (error) {
+      throw error;
     }
-    return this.repository.getPaginated[PageItems](page, perPage);
   }
 
+  /**
+   * Get stats
+   */
   async getStats() {
-    const user = await this.getUser();
-    if (!user) {
-      throw new Error("User not authenticated");
-    }
-    return this.repository.getStats();
-  }
+    try {
+}
 
-  private getUser() {
-    return this.repository.getUser();
+export async function createServer[PageName]Presenter(): Promise<[PageName]Presenter> {
+  return [PageName]PresenterServerFactory.create();
+}
+```
+
+`src/presentation/presenters/[page-name]/[PageName]PresenterClientFactory.ts`
+
+```typescript
+"use client";
+
+import { createClientSupabaseClient } from "@/src/infrastructure/config/supabase-client-client";
+import { [PageName]Presenter } from "./[PageName]Presenter";
+
+export class [PageName]PresenterClientFactory {
+  static create(): [PageName]Presenter {
+    const supabase = createClientSupabaseClient();
+    return new [PageName]Presenter(supabase);
   }
 }
 
-/**
- * Factory for creating [PageName]Presenter instances
- * ✅ Inject repository here (mock, Supabase, REST, etc.)
- */
-export class [PageName]PresenterFactory {
-  static async createServer(): Promise<[PageName]Presenter> {
-    // TODO: Replace Mock repository with real repository resolved from server container
-    const repository = new Mock[PageName]Repository();
-    return new [PageName]Presenter(repository);
-  }
-
-  static createClient(): [PageName]Presenter {
-    // TODO: Replace Mock repository with client-side repository implementation when ready
-    const repository = new Mock[PageName]Repository();
-    return new [PageName]Presenter(repository);
-  }
+export function createClient[PageName]Presenter(): [PageName]Presenter {
+  return [PageName]PresenterClientFactory.create();
 }
 ```
 
 ### Key Features:
 
-- **Repository abstraction** for infrastructure independence
-- **Mock repository** ready for quick prototyping and testing
-- **Swap-in real repositories** via dependency injection (Supabase, REST, etc.)
-- **Authentication and authorization** checks inside presenter
+- **Clean Architecture** with proper separation of concerns
+- **Authentication and authorization** checks
+- **CRUD operations** with proper error handling
 - **Parallel data fetching** for performance
-- **Factory pattern** controlling dependency wiring
+- **Factory pattern** for dependency injection
+- **Server and client factories** for different environments
 
 ---
 
@@ -363,14 +336,13 @@ export class [PageName]PresenterFactory {
 
 import { useCallback, useEffect, useState } from "react";
 import { [PageName]ViewModel } from "./[PageName]Presenter";
-import { [PageName]PresenterFactory } from "./[PageName]Presenter";
+import { createClient[PageName]Presenter } from "./[PageName]PresenterClientFactory";
 import type { [PageItem] } from "./[PageName]Presenter";
 import type { Create[PageItem]Data } from "./[PageName]Presenter";
 import type { Update[PageItem]Data } from "./[PageName]Presenter";
 
 // Initialize presenter instance once (singleton pattern)
-// ไม่ต้อง await เพราะ createClient() return instance โดยตรง
-const presenter = [PageName]PresenterFactory.createClient();
+const presenter = createClient[PageName]Presenter();
 
 export interface [PageName]PresenterState {
   viewModel: [PageName]ViewModel | null;
@@ -597,13 +569,13 @@ export function use[PageName]Presenter(
 import { useCallback, useEffect, useState } from "react";
 import { useAuthStore } from "@/src/presentation/stores/authStore";
 import { [PageName]ViewModel } from "./[PageName]Presenter";
-import { [PageName]PresenterFactory } from "./[PageName]Presenter";
+import { createClient[PageName]Presenter } from "./[PageName]PresenterClientFactory";
 import type { [PageItem] } from "./[PageName]Presenter";
 import type { Create[PageItem]Data } from "./[PageName]Presenter";
 import type { Update[PageItem]Data } from "./[PageName]Presenter";
 
 // Initialize presenter instance once (singleton pattern)
-const presenter = [PageName]PresenterFactory.createClient();
+const presenter = createClient[PageName]Presenter();
 
 export interface [PageName]PresenterState {
   viewModel: [PageName]ViewModel | null;
@@ -1283,4 +1255,7 @@ Ensure comprehensive testing:
 ---
 
 This pattern ensures consistency across all backend pages while maintaining Clean Architecture principles and providing excellent user experience.
+
+```
+
 ```
